@@ -9,12 +9,14 @@ import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Sitemap from "@/components/Sitemap";
 import { useParams } from "next/navigation";
+import { ProductsList } from "@/components/ProductList";
 // const baseurl = import.meta.env.REACT_APP_API_BASE_URL;
 const baseurl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 function TopPage() {
   const { id } = useParams();
-
+  const [dataLoadingState, setDataLoadingState] = useState(false);
+  const [errorState, setErrorState] = useState(false);
   useEffect(() => {
     localStorage.setItem("userID", id);
   }, [id]);
@@ -23,17 +25,24 @@ function TopPage() {
     getUserData(id);
   }, []);
 
-  const getUserData = (id) => {
-    let config = {
-      method: "get",
-      url: `${baseurl}/api/user-products/${id}`,
-    };
-    axios(config)
-      .then(async (response) => {
-        setProducts(response.data.products);
-      })
-      .catch((err) => {});
-  };
+const getUserData = async (id) => {
+  setDataLoadingState(true);
+  setErrorState(null);
+
+  try {
+    const response = await axios.get(`${baseurl}/api/user-products/${id}`);
+
+   
+    setProducts(response.data?.products || []);
+  } catch (error) {
+   
+    setErrorState(error?.response?.data?.message || error.message);
+  } finally {
+  
+    setDataLoadingState(false);
+  }
+};
+
 
   return (
     <>
@@ -119,30 +128,12 @@ function TopPage() {
         </section>
         <section className="list">
           <div className="list-title">全ての商品</div>
-          <div className="contain">
-            {products.map((item, index) => (
-              <div className="list-item" key={index}>
-                <div className="list-item-thumb">
-                  <Image width={300} height={300} src={item.image} alt="" />
-                </div>
-                <h3 className="list-item-title">{item.title}</h3>
-                <div className="list-item-package">{item.package}</div>
-                <p className="list-item-content">{item.description}</p>
-                <div className="list-item-price">
-                  <div className="wrap">
-                    <div className="list-item-price-title">特別限定価格</div>
-                    <p>
-                      {parseInt(item.price_sell)
-                        .toLocaleString("en-US")
-                        .toString()}{" "}
-                      <span>(税込)</span>
-                    </p>
-                  </div>
-                  <a href={`/products/${id}/${item.id}`}>今すぐ購入する</a>
-                </div>
-              </div>
-            ))}
-          </div>
+
+          <ProductsList
+            products={products}
+            isFetchingData={dataLoadingState}
+            error={errorState}
+          />
         </section>
         <section className="social">
           <div className="contain">
