@@ -5,6 +5,7 @@ import axios from 'axios';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
 import Sitemap from '../components/Sitemap';
+import Image from 'next/image';
 const baseurl = process.env.NEXT_PUBLIC_API_BASE_URL;
 function SubPage({page}) {
     const [title, setTitle] = useState("")
